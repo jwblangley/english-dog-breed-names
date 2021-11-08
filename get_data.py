@@ -9,15 +9,19 @@ BASE_URL = "http://www.fci.be"
 
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-BREED_UL_LIST_PATH_X_PATH = "//*[@id=\"page\"]/div[2]/div[1]/ul/li/a"
+BREED_UL_LIST_PATH_X_PATH = '//*[@id="page"]/div[2]/div[1]/ul/li/a'
 
-ENGLISH_NAME_X_PATH = "//*[@id=\"ContentPlaceHolder1_NomEnLabel\"]"
+ENGLISH_NAME_X_PATH = '//*[@id="ContentPlaceHolder1_NomEnLabel"]'
 
 OUT_FILE = "all_dogs.txt"
 
 # Arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("destination", nargs="?", help="Output file to write contents to. stdout if not specified")
+parser.add_argument(
+    "destination",
+    nargs="?",
+    help="Output file to write contents to. stdout if not specified",
+)
 
 args = parser.parse_args()
 
@@ -28,7 +32,9 @@ if __name__ == "__main__":
     alphabet_pbar = tqdm(ALPHABET)
 
     for init in alphabet_pbar:
-        alphabet_pbar.set_description(f"Getting listings for dogs beginning with {init}")
+        alphabet_pbar.set_description(
+            f"Getting listings for dogs beginning with {init}"
+        )
 
         page = requests.get(f"{BASE_URL}/en/nomenclature/races.aspx?init={init}")
 
@@ -37,10 +43,16 @@ if __name__ == "__main__":
         breeds_pbar = tqdm(breeds)
 
         for breed in breeds_pbar:
-            breeds_pbar.set_description(f"Getting English name for {breed.text_content()}")
+            breeds_pbar.set_description(
+                f"Getting English name for {breed.text_content()}"
+            )
             subpage = requests.get(f"{BASE_URL}{breed.attrib['href']}")
 
-            eng_name = html.fromstring(subpage.content).xpath(ENGLISH_NAME_X_PATH)[0].text_content()
+            eng_name = (
+                html.fromstring(subpage.content)
+                .xpath(ENGLISH_NAME_X_PATH)[0]
+                .text_content()
+            )
 
             res.append(eng_name.title())
 
