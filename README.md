@@ -1,5 +1,5 @@
 # English Dog Breed Names
-Scrapes www.fci.be for all internationally recognised dog breeds in their English name
+Scrapes www.fci.be for all internationally recognised dog breeds in their English name and group.
 
 ## Installation
 * (Optional, recommended) Create a python virtual environment

@@ -1,8 +1,12 @@
+from collections import namedtuple
 from lxml import html
 from tqdm import tqdm
 
 import argparse
 import requests
+
+# Types
+Breed = namedtuple("Breed", ["name", "group"])
 
 # Constants
 BASE_URL = "http://www.fci.be"
@@ -13,7 +17,7 @@ BREED_UL_LIST_PATH_X_PATH = '//*[@id="page"]/div[2]/div[1]/ul/li/a'
 
 ENGLISH_NAME_X_PATH = '//*[@id="ContentPlaceHolder1_NomEnLabel"]'
 
-OUT_FILE = "all_dogs.txt"
+GROUP_X_PATH = '//*[@id="ContentPlaceHolder1_GroupeHyperLink"]'
 
 # Arguments
 parser = argparse.ArgumentParser()
@@ -48,19 +52,25 @@ if __name__ == "__main__":
             )
             subpage = requests.get(f"{BASE_URL}{breed.attrib['href']}")
 
-            eng_name = (
-                html.fromstring(subpage.content)
-                .xpath(ENGLISH_NAME_X_PATH)[0]
-                .text_content()
-            )
+            tree = html.fromstring(subpage.content)
+            eng_name = tree.xpath(ENGLISH_NAME_X_PATH)[0].text_content()
 
-            res.append(eng_name.title())
+            group = tree.xpath(GROUP_X_PATH)[0].text_content()
+            group = group[group.index("-") + 2 :]
+
+            res.append(Breed(eng_name.title(), group))
+
+    print()
 
     # Report results
-    if args.destination is None:
-        print("\n".join(sorted(res)))
+    res_str = "\n".join(f"{b.name}, {b.group}" for b in sorted(res))
+    header = "Name, Group"
 
+    if args.destination is None:
+        print(header)
+        print(res_str)
     else:
         with open(args.destination, "w") as f:
-            f.write("\n".join(sorted(res)))
-            print(f"Results written to {OUT_FILE}")
+            f.write(f"{header}\n")
+            f.write(res_str)
+            print(f"Results written to {args.destination}")
