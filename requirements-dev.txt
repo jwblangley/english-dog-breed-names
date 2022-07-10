@@ -2,3 +2,5 @@
 black
 mypy
 mypy-extensions
+types-requests
+types-tqdm
