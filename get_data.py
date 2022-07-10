@@ -1,5 +1,8 @@
+import aiohttp
+import asyncio
 import argparse
 import requests
+import itertools
 
 from collections import namedtuple
 from lxml import html
@@ -22,7 +25,7 @@ ENGLISH_NAME_X_PATH = '//*[@id="ContentPlaceHolder1_NomEnLabel"]'
 GROUP_X_PATH = '//*[@id="ContentPlaceHolder1_GroupeHyperLink"]'
 
 
-def _breeds_url_from_listing_page(page_content: str) -> list[tuple[str, str]]:
+def _breeds_from_listing_page(page_content: str) -> list[tuple[str, str]]:
     elems = html.fromstring(page_content).xpath(BREED_UL_LIST_PATH_X_PATH)
     return [(breed.text_content(), breed.attrib["href"]) for breed in elems]
 
@@ -63,7 +66,7 @@ def get_dog_listings(show_pbar: bool) -> Generator[Breed, None, None]:
 
         page = requests.get(f"{BASE_URL}/en/nomenclature/races.aspx?init={init}")
 
-        breeds = _breeds_url_from_listing_page(page.content.decode("utf-8"))
+        breeds = _breeds_from_listing_page(page.text)
 
         breeds_pbar = tqdm(breeds)
 
@@ -72,8 +75,23 @@ def get_dog_listings(show_pbar: bool) -> Generator[Breed, None, None]:
                 breeds_pbar.set_description(f"Getting English name for {breed_name}")
             subpage = requests.get(f"{BASE_URL}{breed_path}")
 
-            yield _breed_from_page(subpage.content.decode("utf-8"))
-        return
+            yield _breed_from_page(subpage.text)
+
+
+async def async_get_dog_listings() -> Generator[Breed, None, None]:
+    async def _breed_from_their_page(path: str, session: aiohttp.ClientSession):
+        page = session.get(f"{BASE_URL}{path}")
+        return _breed_from_page(await (await page).text())
+
+    async def _process_letter(letter: str, session: aiohttp.ClientSession) -> Generator[Breed, None, None]:
+        page = session.get(f"{BASE_URL}/en/nomenclature/races.aspx?init={letter}")
+        breeds = _breeds_from_listing_page(await (await page).text())
+
+        return iter(await asyncio.gather(*(_breed_from_their_page(path, session) for _, path in breeds)))
+
+    async with aiohttp.ClientSession() as session:
+        return itertools.chain(*await asyncio.gather(*(_process_letter(l, session) for l in ALPHABET)))
+
 
 
 if __name__ == "__main__":
@@ -87,4 +105,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    print_results(get_dog_listings(args.destination is not None), args.destination)
+    # print_results(get_dog_listings(args.destination is not None), args.destination)
+    print_results(asyncio.run(async_get_dog_listings()), args.destination)
