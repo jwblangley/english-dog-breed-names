@@ -83,15 +83,22 @@ async def async_get_dog_listings() -> Generator[Breed, None, None]:
         page = session.get(f"{BASE_URL}{path}")
         return _breed_from_page(await (await page).text())
 
-    async def _process_letter(letter: str, session: aiohttp.ClientSession) -> Generator[Breed, None, None]:
+    async def _process_letter(
+        letter: str, session: aiohttp.ClientSession
+    ) -> Generator[Breed, None, None]:
         page = session.get(f"{BASE_URL}/en/nomenclature/races.aspx?init={letter}")
         breeds = _breeds_from_listing_page(await (await page).text())
 
-        return iter(await asyncio.gather(*(_breed_from_their_page(path, session) for _, path in breeds)))
+        return iter(
+            await asyncio.gather(
+                *(_breed_from_their_page(path, session) for _, path in breeds)
+            )
+        )
 
     async with aiohttp.ClientSession() as session:
-        return itertools.chain(*await asyncio.gather(*(_process_letter(l, session) for l in ALPHABET)))
-
+        return itertools.chain(
+            *await asyncio.gather(*(_process_letter(l, session) for l in ALPHABET))
+        )
 
 
 if __name__ == "__main__":
