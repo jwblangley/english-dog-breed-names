@@ -78,8 +78,10 @@ def get_dog_listings(show_pbar: bool) -> Generator[Breed, None, None]:
             yield _breed_from_page(subpage.text)
 
 
-async def async_get_dog_listings() -> Generator[Breed, None, None]:
-    async def _breed_from_their_page(path: str, session: aiohttp.ClientSession):
+async def async_get_dog_listings() -> Iterator[Breed]:
+    async def _breed_from_their_page(
+        path: str, session: aiohttp.ClientSession
+    ) -> Breed:
         page = session.get(f"{BASE_URL}{path}")
         return _breed_from_page(await (await page).text())
 
