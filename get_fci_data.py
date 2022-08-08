@@ -4,14 +4,12 @@ import argparse
 import requests
 import itertools
 
-from collections import namedtuple
 from lxml import html
 from tqdm import tqdm
 
-from typing import Generator, Iterator, Optional
+from typing import Generator, Iterator
 
-# Types
-Breed = namedtuple("Breed", ["name", "group"])
+from common import Breed, print_results
 
 # Constants
 BASE_URL = "http://www.fci.be"
@@ -37,22 +35,6 @@ def _breed_from_page(page_content: str) -> Breed:
     group = tree.xpath(GROUP_X_PATH)[0].text_content()
     group = group[group.index("-") + 2 :]
     return Breed(eng_name.title(), group)
-
-
-def print_results(breeds: Iterator[Breed], outfile: Optional[str]) -> None:
-    # Report results
-    header = "Name, Group\n"
-    format_gen = (f"{b.name}, {b.group}\n" for b in sorted(breeds))
-
-    if outfile is None:
-        print(header, end="")
-        for l in format_gen:
-            print(l, end="")
-    else:
-        with open(outfile, "w") as f:
-            f.write(header)
-            f.writelines(format_gen)
-            print(f"Results written to {outfile}")
 
 
 def get_dog_listings(show_pbar: bool) -> Generator[Breed, None, None]:
@@ -114,5 +96,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # main
     # print_results(get_dog_listings(args.destination is not None), args.destination)
     print_results(asyncio.run(async_get_dog_listings()), args.destination)
