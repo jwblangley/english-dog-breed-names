@@ -1,4 +1,5 @@
 from collections import namedtuple
+from typing import Any
 import requests
 from lxml import html
 
@@ -11,7 +12,7 @@ GROUP_XPATH = './/div[@class="m-breed-card__category"]'
 BREED_XPATH = './/strong[@class="m-breed-card__title"]'
 
 
-def _breed_from_info_card(info_card):
+def _breed_from_info_card(info_card: Any) -> Breed:
     assert len(group_elems := info_card.xpath(GROUP_XPATH)) == 1
     assert len(breed_elems := info_card.xpath(BREED_XPATH)) == 1
     [breed] = breed_elems
@@ -19,7 +20,7 @@ def _breed_from_info_card(info_card):
     return Breed(breed.text_content(), group.text_content())
 
 
-def get_groups_for_breed():
+def get_groups_for_breed() -> dict[str, str]:
     page = requests.get(f"{KC_AZ_INFO_PAGE}")
     content = page.text
     tree = html.fromstring(content)
