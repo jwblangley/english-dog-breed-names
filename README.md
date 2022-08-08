@@ -1,5 +1,5 @@
 # English Dog Breed Names
-Scrapes www.fci.be for all internationally recognised dog breeds in their English name and group.
+Scrapes <https://www.fci.be> and <https://www.thekennelclub.org.uk> for all internationally recognised dog breeds in their English name and group.
 
 ## Installation
 * (Optional, recommended) Create a python virtual environment
@@ -12,8 +12,11 @@ Scrapes www.fci.be for all internationally recognised dog breeds in their Englis
     ```
 
 ## Running
+
+### Fetch FCI Breeds and Groups
+
 ```
-usage: get_data.py [-h] [destination]
+usage: get_fci_data.py [-h] [destination]
 
 positional arguments:
   destination  Output file to write contents to. stdout if not specified
@@ -22,3 +25,5 @@ optional arguments:
   -h, --help   show this help message and exit
 
 ```
+
+### Get KC Groups for each Breed
